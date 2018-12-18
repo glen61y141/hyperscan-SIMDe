@@ -191,19 +191,23 @@ else()
         set (EXEC_ARGS ${CC_ARG1} -c -Q --help=target -march=native -mtune=native)
         execute_process(COMMAND ${CMAKE_C_COMPILER} ${EXEC_ARGS}
             OUTPUT_VARIABLE _GCC_OUTPUT)
-        string(REGEX REPLACE ".*march=[ \t]*([^ \n]*)[ \n].*" "\\1"
-            GNUCC_ARCH "${_GCC_OUTPUT}")
+        string(REGEX REPLACE ".*mtune=(CPU)?[ \t]*([^ \n]*)[ \n].*" "\\2"
+            GNUCC_TUNE "${_GCC_OUTPUT}")
+        if (NOT GNUCC_TUNE OR GNUCC_TUNE STREQUAL "" OR GNUCC_TUNE STREQUAL "${_GCC_OUTPUT}")
+            string(REGEX REPLACE ".*march=(ARCH)?[ \t]*([^ \n]*)[ \n].*" "\\2"
+                GNUCC_TUNE "${_GCC_OUTPUT}")
+        endif ()
 
         # test the parsed flag
-        set (EXEC_ARGS ${CC_ARG1} -E - -mtune=${GNUCC_ARCH})
+        set (EXEC_ARGS ${CC_ARG1} -E - -mtune=${GNUCC_TUNE})
         execute_process(COMMAND ${CMAKE_C_COMPILER} ${EXEC_ARGS}
             OUTPUT_QUIET ERROR_QUIET
             INPUT_FILE /dev/null
             RESULT_VARIABLE GNUCC_TUNE_TEST)
         if (NOT GNUCC_TUNE_TEST EQUAL 0)
-            message(SEND_ERROR "Something went wrong determining gcc tune: -mtune=${GNUCC_ARCH} not valid")
+            message(SEND_ERROR "Something went wrong determining gcc tune: -mtune=${GNUCC_TUNE} not valid")
         endif()
-        set(TUNE_FLAG ${GNUCC_ARCH})
+        set(TUNE_FLAG ${GNUCC_TUNE})
     else ()
         set(TUNE_FLAG native)
     endif()

@@ -43,7 +43,7 @@ CHECK_C_SOURCE_COMPILES("#include <${INTRIN_INC_H}>
 #endif
 
 int main(){
-    __m256i z = _mm256_setzero_si256();
+    simde__m256i z = _mm256_setzero_si256();
     (void)_mm256_xor_si256(z, z);
 }" HAVE_AVX2)
 

@@ -54,7 +54,7 @@ CHECK_C_SOURCE_COMPILES("#include <${INTRIN_INC_H}>
 #endif
 
 int main(){
-    __m512i z = _mm512_setzero_si512();
+    simde__m512i z = _mm512_setzero_si512();
     (void)_mm512_abs_epi8(z);
 }" HAVE_AVX512)
 

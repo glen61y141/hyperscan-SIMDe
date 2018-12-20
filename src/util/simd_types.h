@@ -48,7 +48,7 @@ typedef struct ALIGN_AVX_DIRECTIVE {m128 lo; m128 hi;} m256;
 
 typedef struct {m128 lo; m128 mid; m128 hi;} m384;
 #if defined(HAVE_AVX512)
-typedef __m512i m512;
+typedef simde__m512i m512;
 #else
 typedef struct ALIGN_ATTR(64) {m256 lo; m256 hi;} m512;
 #endif

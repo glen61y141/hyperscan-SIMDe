@@ -47,11 +47,11 @@ extern const u32 mm_shuffle_end[32][8];
 
 /* load mask for len bytes from start of buffer */
 static really_inline m256
-_get_mm_mask_end(u32 len) {
+_getsimde_mm_mask_end(u32 len) {
     assert(len <= 32);
     const u8 *masky = (const u8 *)mm_mask_mask;
     m256 mask = load256(masky + 32);
-    mask = _mm256_sll_epi32(mask, _mm_cvtsi32_si128(8 - (len >> 2)));
+    mask = _mm256_sll_epi32(mask, simde_mm_cvtsi32_si128(8 - (len >> 2)));
     return mask;
 }
 
@@ -65,10 +65,10 @@ static really_inline m256
 masked_move256_len(const u8 *buf, const u32 len) {
     assert(len >= 4);
 
-    m256 lmask = _get_mm_mask_end(len);
+    m256 lmask = _getsimde_mm_mask_end(len);
 
     u32 end = unaligned_load_u32(buf + len - 4);
-    m256 preshufend = _mm256_broadcastq_epi64(_mm_cvtsi32_si128(end));
+    m256 preshufend = _mm256_broadcastq_epi64(simde_mm_cvtsi32_si128(end));
     m256 v = _mm256_maskload_epi32((const int *)buf, lmask);
     m256 shufend = pshufb_m256(preshufend,
                                loadu256(&mm_shuffle_end[len - 4]));

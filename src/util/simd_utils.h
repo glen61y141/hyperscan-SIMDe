@@ -74,26 +74,26 @@ extern const char vbs_mask_data[];
 static really_inline m128 ones128(void) {
 #if defined(__GNUC__) || defined(__INTEL_COMPILER)
     /* gcc gets this right */
-    return _mm_set1_epi8(0xFF);
+    return simde_mm_set1_epi8(0xFF);
 #else
     /* trick from Intel's optimization guide to generate all-ones.
      * ICC converts this to the single cmpeq instruction */
-    return _mm_cmpeq_epi8(_mm_setzero_si128(), _mm_setzero_si128());
+    return simde_mm_cmpeq_epi8(simde_mm_setzero_si128(), simde_mm_setzero_si128());
 #endif
 }
 
 static really_inline m128 zeroes128(void) {
-    return _mm_setzero_si128();
+    return simde_mm_setzero_si128();
 }
 
 /** \brief Bitwise not for m128*/
 static really_inline m128 not128(m128 a) {
-    return _mm_xor_si128(a, ones128());
+    return simde_mm_xor_si128(a, ones128());
 }
 
 /** \brief Return 1 if a and b are different otherwise 0 */
 static really_inline int diff128(m128 a, m128 b) {
-    return (_mm_movemask_epi8(_mm_cmpeq_epi8(a, b)) ^ 0xffff);
+    return (simde_mm_movemask_epi8(simde_mm_cmpeq_epi8(a, b)) ^ 0xffff);
 }
 
 static really_inline int isnonzero128(m128 a) {
@@ -105,8 +105,8 @@ static really_inline int isnonzero128(m128 a) {
  * mask indicating which 32-bit words contain differences.
  */
 static really_inline u32 diffrich128(m128 a, m128 b) {
-    a = _mm_cmpeq_epi32(a, b);
-    return ~(_mm_movemask_ps(_mm_castsi128_ps(a))) & 0xf;
+    a = simde_mm_cmpeq_epi32(a, b);
+    return ~(simde_mm_movemask_ps(simde_mm_castsi128_ps(a))) & 0xf;
 }
 
 /**
@@ -115,8 +115,8 @@ static really_inline u32 diffrich128(m128 a, m128 b) {
  */
 static really_inline u32 diffrich64_128(m128 a, m128 b) {
 #if defined(HAVE_SSE41)
-    a = _mm_cmpeq_epi64(a, b);
-    return ~(_mm_movemask_ps(_mm_castsi128_ps(a))) & 0x5;
+    a = simde_mm_cmpeq_epi64(a, b);
+    return ~(simde_mm_movemask_ps(simde_mm_castsi128_ps(a))) & 0x5;
 #else
     u32 d = diffrich128(a, b);
     return (d | (d >> 1)) & 0x5;
@@ -127,35 +127,35 @@ static really_really_inline
 m128 lshift64_m128(m128 a, unsigned b) {
 #if defined(HAVE__BUILTIN_CONSTANT_P)
     if (__builtin_constant_p(b)) {
-        return _mm_slli_epi64(a, b);
+        return simde_mm_slli_epi64(a, b);
     }
 #endif
-    m128 x = _mm_cvtsi32_si128(b);
-    return _mm_sll_epi64(a, x);
+    m128 x = simde_mm_cvtsi32_si128(b);
+    return simde_mm_sll_epi64(a, x);
 }
 
-#define rshift64_m128(a, b) _mm_srli_epi64((a), (b))
-#define eq128(a, b)      _mm_cmpeq_epi8((a), (b))
-#define movemask128(a)  ((u32)_mm_movemask_epi8((a)))
+#define rshift64_m128(a, b) simde_mm_srli_epi64((a), (b))
+#define eq128(a, b)      simde_mm_cmpeq_epi8((a), (b))
+#define movemask128(a)  ((u32)simde_mm_movemask_epi8((a)))
 
 static really_inline m128 set16x8(u8 c) {
-    return _mm_set1_epi8(c);
+    return simde_mm_set1_epi8(c);
 }
 
 static really_inline m128 set4x32(u32 c) {
-    return _mm_set1_epi32(c);
+    return simde_mm_set1_epi32(c);
 }
 
 static really_inline u32 movd(const m128 in) {
-    return _mm_cvtsi128_si32(in);
+    return simde_mm_cvtsi128_si32(in);
 }
 
 static really_inline u64a movq(const m128 in) {
 #if defined(ARCH_X86_64)
-    return _mm_cvtsi128_si64(in);
+    return simde_mm_cvtsi128_si64(in);
 #else // 32-bit - this is horrific
     u32 lo = movd(in);
-    u32 hi = movd(_mm_srli_epi64(in, 32));
+    u32 hi = movd(simde_mm_srli_epi64(in, 32));
     return (u64a)hi << 32 | lo;
 #endif
 }
@@ -163,18 +163,18 @@ static really_inline u64a movq(const m128 in) {
 /* another form of movq */
 static really_inline
 m128 load_m128_from_u64a(const u64a *p) {
-    return _mm_set_epi64x(0LL, *p);
+    return simde_mm_set_epi64x(0LL, *p);
 }
 
-#define rshiftbyte_m128(a, count_immed) _mm_srli_si128(a, count_immed)
-#define lshiftbyte_m128(a, count_immed) _mm_slli_si128(a, count_immed)
+#define rshiftbyte_m128(a, count_immed) simde_mm_srli_si128(a, count_immed)
+#define lshiftbyte_m128(a, count_immed) simde_mm_slli_si128(a, count_immed)
 
 #if defined(HAVE_SSE41)
-#define extract32from128(a, imm) _mm_extract_epi32(a, imm)
-#define extract64from128(a, imm) _mm_extract_epi64(a, imm)
+#define extract32from128(a, imm) simde_mm_extract_epi32(a, imm)
+#define extract64from128(a, imm) simde_mm_extract_epi64(a, imm)
 #else
-#define extract32from128(a, imm) movd(_mm_srli_si128(a, imm << 2))
-#define extract64from128(a, imm) movq(_mm_srli_si128(a, imm << 3))
+#define extract32from128(a, imm) movd(simde_mm_srli_si128(a, imm << 2))
+#define extract64from128(a, imm) movq(simde_mm_srli_si128(a, imm << 3))
 #endif
 
 #if !defined(HAVE_AVX2)
@@ -182,36 +182,36 @@ m128 load_m128_from_u64a(const u64a *p) {
 #define extractlow64from256(a) movq(a.lo)
 #define extractlow32from256(a) movd(a.lo)
 #if defined(HAVE_SSE41)
-#define extract32from256(a, imm) _mm_extract_epi32((imm >> 2) ? a.hi : a.lo, imm % 4)
-#define extract64from256(a, imm) _mm_extract_epi64((imm >> 1) ? a.hi : a.lo, imm % 2)
+#define extract32from256(a, imm) simde_mm_extract_epi32((imm >> 2) ? a.hi : a.lo, imm % 4)
+#define extract64from256(a, imm) simde_mm_extract_epi64((imm >> 1) ? a.hi : a.lo, imm % 2)
 #else
-#define extract32from256(a, imm) movd(_mm_srli_si128((imm >> 2) ? a.hi : a.lo, (imm % 4) * 4))
-#define extract64from256(a, imm) movq(_mm_srli_si128((imm >> 1) ? a.hi : a.lo, (imm % 2) * 8))
+#define extract32from256(a, imm) movd(simde_mm_srli_si128((imm >> 2) ? a.hi : a.lo, (imm % 4) * 4))
+#define extract64from256(a, imm) movq(simde_mm_srli_si128((imm >> 1) ? a.hi : a.lo, (imm % 2) * 8))
 #endif
 
 #endif // !AVX2
 
 static really_inline m128 and128(m128 a, m128 b) {
-    return _mm_and_si128(a,b);
+    return simde_mm_and_si128(a,b);
 }
 
 static really_inline m128 xor128(m128 a, m128 b) {
-    return _mm_xor_si128(a,b);
+    return simde_mm_xor_si128(a,b);
 }
 
 static really_inline m128 or128(m128 a, m128 b) {
-    return _mm_or_si128(a,b);
+    return simde_mm_or_si128(a,b);
 }
 
 static really_inline m128 andnot128(m128 a, m128 b) {
-    return _mm_andnot_si128(a, b);
+    return simde_mm_andnot_si128(a, b);
 }
 
 // aligned load
 static really_inline m128 load128(const void *ptr) {
     assert(ISALIGNED_N(ptr, alignof(m128)));
     ptr = assume_aligned(ptr, 16);
-    return _mm_load_si128((const m128 *)ptr);
+    return simde_mm_load_si128((const m128 *)ptr);
 }
 
 // aligned store
@@ -223,12 +223,12 @@ static really_inline void store128(void *ptr, m128 a) {
 
 // unaligned load
 static really_inline m128 loadu128(const void *ptr) {
-    return _mm_loadu_si128((const m128 *)ptr);
+    return simde_mm_loadu_si128((const m128 *)ptr);
 }
 
 // unaligned store
 static really_inline void storeu128(void *ptr, m128 a) {
-    _mm_storeu_si128 ((m128 *)ptr, a);
+    simde_mm_storeu_si128 ((m128 *)ptr, a);
 }
 
 // packed unaligned store of first N bytes
@@ -280,19 +280,19 @@ static really_inline
 char testbit128(m128 val, unsigned int n) {
     const m128 mask = mask1bit128(n);
 #if defined(HAVE_SSE41)
-    return !_mm_testz_si128(mask, val);
+    return !simde_mm_testz_si128(mask, val);
 #else
     return isnonzero128(and128(mask, val));
 #endif
 }
 
 // offset must be an immediate
-#define palignr(r, l, offset) _mm_alignr_epi8(r, l, offset)
+#define palignr(r, l, offset) simde_mm_alignr_epi8(r, l, offset)
 
 static really_inline
 m128 pshufb_m128(m128 a, m128 b) {
     m128 result;
-    result = _mm_shuffle_epi8(a, b);
+    result = simde_mm_shuffle_epi8(a, b);
     return result;
 }
 
@@ -329,27 +329,27 @@ m128 variable_byte_shift_m128(m128 in, s32 amount) {
 
 static really_inline
 m128 max_u8_m128(m128 a, m128 b) {
-    return _mm_max_epu8(a, b);
+    return simde_mm_max_epu8(a, b);
 }
 
 static really_inline
 m128 min_u8_m128(m128 a, m128 b) {
-    return _mm_min_epu8(a, b);
+    return simde_mm_min_epu8(a, b);
 }
 
 static really_inline
 m128 sadd_u8_m128(m128 a, m128 b) {
-    return _mm_adds_epu8(a, b);
+    return simde_mm_adds_epu8(a, b);
 }
 
 static really_inline
 m128 sub_u8_m128(m128 a, m128 b) {
-    return _mm_sub_epi8(a, b);
+    return simde_mm_sub_epi8(a, b);
 }
 
 static really_inline
 m128 set64x2(u64a hi, u64a lo) {
-    return _mm_set_epi64x(hi, lo);
+    return simde_mm_set_epi64x(hi, lo);
 }
 
 /****
@@ -365,7 +365,7 @@ m256 lshift64_m256(m256 a, unsigned b) {
         return _mm256_slli_epi64(a, b);
     }
 #endif
-    m128 x = _mm_cvtsi32_si128(b);
+    m128 x = simde_mm_cvtsi32_si128(b);
     return _mm256_sll_epi64(a, x);
 }
 
@@ -540,10 +540,10 @@ static really_inline u32 diffrich256(m256 a, m256 b) {
     return ~(_mm256_movemask_ps(_mm256_castsi256_ps(a))) & 0xFF;
 #else
     m128 z = zeroes128();
-    a.lo = _mm_cmpeq_epi32(a.lo, b.lo);
-    a.hi = _mm_cmpeq_epi32(a.hi, b.hi);
-    m128 packed = _mm_packs_epi16(_mm_packs_epi32(a.lo, a.hi), z);
-    return ~(_mm_movemask_epi8(packed)) & 0xff;
+    a.lo = simde_mm_cmpeq_epi32(a.lo, b.lo);
+    a.hi = simde_mm_cmpeq_epi32(a.hi, b.hi);
+    m128 packed = simde_mm_packs_epi16(simde_mm_packs_epi32(a.lo, a.hi), z);
+    return ~(simde_mm_movemask_epi8(packed)) & 0xff;
 #endif
 }
 
@@ -745,9 +745,9 @@ m128 movdq_lo(m256 x) {
 #define insert128to256(a, b, imm) _mm256_inserti128_si256(a, b, imm)
 #define rshift128_m256(a, count_immed) _mm256_srli_si256(a, count_immed)
 #define lshift128_m256(a, count_immed) _mm256_slli_si256(a, count_immed)
-#define extract64from256(a, imm) _mm_extract_epi64(_mm256_extracti128_si256(a, imm >> 1), imm % 2)
-#define extract32from256(a, imm) _mm_extract_epi32(_mm256_extracti128_si256(a, imm >> 2), imm % 4)
-#define extractlow64from256(a) _mm_cvtsi128_si64(cast256to128(a))
+#define extract64from256(a, imm) simde_mm_extract_epi64(_mm256_extracti128_si256(a, imm >> 1), imm % 2)
+#define extract32from256(a, imm) simde_mm_extract_epi32(_mm256_extracti128_si256(a, imm >> 2), imm % 4)
+#define extractlow64from256(a) simde_mm_cvtsi128_si64(cast256to128(a))
 #define extractlow32from256(a) movd(cast256to128(a))
 #define interleave256hi(a, b) _mm256_unpackhi_epi8(a, b)
 #define interleave256lo(a, b) _mm256_unpacklo_epi8(a, b)
@@ -847,12 +847,12 @@ static really_inline int isnonzero384(m384 a) {
  */
 static really_inline u32 diffrich384(m384 a, m384 b) {
     m128 z = zeroes128();
-    a.lo = _mm_cmpeq_epi32(a.lo, b.lo);
-    a.mid = _mm_cmpeq_epi32(a.mid, b.mid);
-    a.hi = _mm_cmpeq_epi32(a.hi, b.hi);
-    m128 packed = _mm_packs_epi16(_mm_packs_epi32(a.lo, a.mid),
-                                  _mm_packs_epi32(a.hi, z));
-    return ~(_mm_movemask_epi8(packed)) & 0xfff;
+    a.lo = simde_mm_cmpeq_epi32(a.lo, b.lo);
+    a.mid = simde_mm_cmpeq_epi32(a.mid, b.mid);
+    a.hi = simde_mm_cmpeq_epi32(a.hi, b.hi);
+    m128 packed = simde_mm_packs_epi16(simde_mm_packs_epi32(a.lo, a.mid),
+                                  simde_mm_packs_epi32(a.hi, z));
+    return ~(simde_mm_movemask_epi8(packed)) & 0xfff;
 }
 
 /**
@@ -1073,7 +1073,7 @@ m512 lshift64_m512(m512 a, unsigned b) {
         return _mm512_slli_epi64(a, b);
     }
 #endif
-    m128 x = _mm_cvtsi32_si128(b);
+    m128 x = simde_mm_cvtsi32_si128(b);
     return _mm512_sll_epi64(a, x);
 }
 #else
@@ -1130,13 +1130,13 @@ u32 diffrich512(m512 a, m512 b) {
 #elif defined(HAVE_AVX2)
     return diffrich256(a.lo, b.lo) | (diffrich256(a.hi, b.hi) << 8);
 #else
-    a.lo.lo = _mm_cmpeq_epi32(a.lo.lo, b.lo.lo);
-    a.lo.hi = _mm_cmpeq_epi32(a.lo.hi, b.lo.hi);
-    a.hi.lo = _mm_cmpeq_epi32(a.hi.lo, b.hi.lo);
-    a.hi.hi = _mm_cmpeq_epi32(a.hi.hi, b.hi.hi);
-    m128 packed = _mm_packs_epi16(_mm_packs_epi32(a.lo.lo, a.lo.hi),
-                                  _mm_packs_epi32(a.hi.lo, a.hi.hi));
-    return ~(_mm_movemask_epi8(packed)) & 0xffff;
+    a.lo.lo = simde_mm_cmpeq_epi32(a.lo.lo, b.lo.lo);
+    a.lo.hi = simde_mm_cmpeq_epi32(a.lo.hi, b.lo.hi);
+    a.hi.lo = simde_mm_cmpeq_epi32(a.hi.lo, b.hi.lo);
+    a.hi.hi = simde_mm_cmpeq_epi32(a.hi.hi, b.hi.hi);
+    m128 packed = simde_mm_packs_epi16(simde_mm_packs_epi32(a.lo.lo, a.lo.hi),
+                                  simde_mm_packs_epi32(a.hi.lo, a.hi.hi));
+    return ~(simde_mm_movemask_epi8(packed)) & 0xffff;
 #endif
 }
 

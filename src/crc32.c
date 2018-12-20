@@ -583,11 +583,11 @@ u32 crc32c_sb8_64_bit(u32 running_crc, const unsigned char* p_buf,
 #ifdef ARCH_64_BIT
 #define CRC_WORD 8
 #define CRC_TYPE u64a
-#define CRC_FUNC _mm_crc32_u64
+#define CRC_FUNC simde_mm_crc32_u64
 #else
 #define CRC_WORD 4
 #define CRC_TYPE u32
-#define CRC_FUNC _mm_crc32_u32
+#define CRC_FUNC simde_mm_crc32_u32
 #endif
 
 /*
@@ -607,7 +607,7 @@ u32 crc32c_sse42(u32 running_crc, const unsigned char* p_buf,
     size_t end_bytes = length - init_bytes - running_length;
 
     while (p_buf < aligned_buf) {
-        crc = _mm_crc32_u8(crc, *p_buf++);
+        crc = simde_mm_crc32_u8(crc, *p_buf++);
     }
 
     // Main aligned loop, processes a word at a time.
@@ -621,7 +621,7 @@ u32 crc32c_sse42(u32 running_crc, const unsigned char* p_buf,
     // Remaining bytes
 
     for(size_t li = 0; li < end_bytes; li++) {
-        crc = _mm_crc32_u8(crc, *p_buf++);
+        crc = simde_mm_crc32_u8(crc, *p_buf++);
     }
 
     return crc;

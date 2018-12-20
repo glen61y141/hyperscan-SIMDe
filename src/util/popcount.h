@@ -40,7 +40,7 @@ static really_inline
 u32 popcount32(u32 x) {
 #if defined(HAVE_POPCOUNT_INSTR)
     // Single-instruction builtin.
-    return _mm_popcnt_u32(x);
+    return simde_mm_popcnt_u32(x);
 #else
     // Fast branch-free version from bit-twiddling hacks as older Intel
     // processors do not have a POPCNT instruction.
@@ -55,7 +55,7 @@ u32 popcount64(u64a x) {
 #if defined(ARCH_X86_64)
 # if defined(HAVE_POPCOUNT_INSTR)
     // Single-instruction builtin.
-    return (u32)_mm_popcnt_u64(x);
+    return (u32)simde_mm_popcnt_u64(x);
 # else
     // Fast branch-free version from bit-twiddling hacks as older Intel
     // processors do not have a POPCNT instruction.

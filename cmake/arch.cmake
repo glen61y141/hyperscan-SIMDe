@@ -32,7 +32,7 @@ endif ()
 # ensure we have the minimum of SSSE3 - call a SSSE3 intrinsic
 CHECK_C_SOURCE_COMPILES("#include <${INTRIN_INC_H}>
 int main() {
-    __m128i a = _mm_set1_epi8(1);
+    simde__m128i a = _mm_set1_epi8(1);
     (void)_mm_shuffle_epi8(a, a);
 }" HAVE_SSSE3)
 

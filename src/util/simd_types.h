@@ -35,7 +35,7 @@
 #include "ue2common.h"
 
 #if defined(HAVE_SSE2)
-typedef __m128i m128;
+typedef simde__m128i m128;
 #else
 typedef struct ALIGN_DIRECTIVE {u64a hi; u64a lo;} m128;
 #endif
